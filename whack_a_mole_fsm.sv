@@ -1,4 +1,4 @@
-module whac_a_mole_fsm #(
+module whack_a_mole_fsm #(
     parameter MAX_MS = 2047
 )(
     input clk,
