@@ -77,15 +77,8 @@ module whack_a_mole_fsm #(
             S1: begin // SPAWN_WAIT / NEW_MOLES
                 // Generate new moles when timer resets
                 if (timer_value == 0) begin
-                    case(difficulty_switches)
-                        3'b001: active_moles <= (1 << (random_value[2:0]));  // Easy: 1 mole
-                        3'b010: active_moles <= (1 << (random_value[2:0])) | 
-                                              (1 << (random_value[5:3]));    // Medium: 2 moles
-                        3'b100: active_moles <= (1 << (random_value[2:0])) | 
-                                              (1 << (random_value[5:3])) | 
-                                              (1 << (random_value[8:6]));    // Hard: 3 moles
-                        default: active_moles <= (1 << (random_value[2:0]));
-                    endcase
+                    3'b010: active_moles <= (1 << (random_value[2:0])) | 
+                                            (1 << (random_value[5:3])); 
                 end
             end
             
