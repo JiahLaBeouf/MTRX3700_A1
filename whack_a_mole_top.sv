@@ -34,7 +34,8 @@ module top_level (
         .clk(CLOCK_50),
         .button(~KEY[0]),          // KEY[0] = start/reset button (active low)
         .button_pressed(button_pressed)
-    );
+    ); //setup debounce again with new module
+    
 
     // Game FSM
     whac_a_mole_fsm u_game_fsm (
@@ -49,6 +50,7 @@ module top_level (
         .enable(timer_enable),
         .mole_positions(mole_positions),
         .score(score)
+        .spqw`default_n
     );
 
     // // Assign LEDs - show moles on first 9 LEDs, others off
@@ -59,7 +61,7 @@ module top_level (
     led_control u_led_control (
         .clk(CLOCK_50),
         .rst_n(timer_reset),
-        .spawn_req()
+        .spawn_req(sw)
     );
 
     // display module
