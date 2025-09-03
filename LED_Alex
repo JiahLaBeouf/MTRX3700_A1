@@ -1,0 +1,36 @@
+// led.v
+module led_controller #(
+    parameter N = 18
+)(
+    input                  clk,
+    input                  rst_n,
+    input                  game_tick,    
+    input                  game_over,
+    input                  clear_on_hit,  // after hit the target, clear it
+    input       [4:0]      random_pos,    // 0..17
+    output reg  [N-1:0]    curr_target,   // one-hot
+    output reg  [N-1:0]    target_led
+);
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            curr_target <= {N{1'b0}};
+            target_led  <= {N{1'b0}};
+        end else if (game_over) begin
+            curr_target <= {N{1'b0}};
+            target_led  <= {N{1'b0}};
+        end else if (clear_on_hit) begin
+            // clear
+            curr_target <= {N{1'b0}};
+            target_led  <= {N{1'b0}};
+        end else if (game_tick) begin
+            // change to next target（one-hot）
+            curr_target <= {{(N){1'b0}}} | ({{(N){1'b0}}} + ({{(N){1'b0}}} | ({{(N){1'b0}}})));
+            curr_target <= ({{(N){1'b0}}} | (1'b1)) << random_pos; 
+            target_led  <= (1'b1 << random_pos);
+        end else begin
+            // keep the current target
+            curr_target <= curr_target;
+            target_led  <= target_led;
+        end
+    end
+endmodule
