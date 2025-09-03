@@ -21,6 +21,22 @@ module game_controller(
     reg [17:0] curr_target;     // 当前目标
     reg target_hit;             // 目标被击中标志
     wire game_clk;              // 游戏时钟，根据速度选择
+
+	// Debounced switch signals
+    wire [17:0] switches_stable;
+    wire [17:0] switch_changed;
+
+    // Instantiate debounce module (10ms @ 50MHz by default)
+    debounce #(
+        .CLK_HZ(50_000_000),
+        .DEBOUNCE_MS(10)
+	)u_sw_deb(
+        .clk             (clk),
+        .rst_n           (rst_n),
+        .switches        (switches),
+        .switches_stable (switches_stable),
+        .switch_changed  (switch_changed)
+    );
     
     // 游戏时钟选择
     assign game_clk = (speed_level == 2'b00) ? clk_05hz :   // 速度1: 0.5Hz (2秒/次)
@@ -90,53 +106,7 @@ module game_controller(
             target_led <= 18'd0;
         end
     end
-    
-    // SW0 - SW17 switch decounce
-    reg [17:0] switches_sync1, switches_sync2;
-    reg [17:0] switches_stable;
-    reg [19:0] debounce_cnt [17:0]; // 每个开关一个消抖计数器
-    reg [17:0] switch_changed;
-    
-    // 循环变量声明（标准Verilog）
-    integer i;
-    
-    // 拨码开关同步和消抖
-    always @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            switches_sync1 <= 18'd0;
-            switches_sync2 <= 18'd0;
-            switches_stable <= 18'd0;
-            switch_changed <= 18'd0;
-            for (i = 0; i < 18; i = i + 1) begin
-                debounce_cnt[i] <= 20'd0;
-            end
-        end else begin
-            // 两级同步器，防止亚稳态
-            switches_sync1 <= switches;
-            switches_sync2 <= switches_sync1;
-            
-            // 消抖处理
-            for (i = 0; i < 18; i = i + 1) begin
-                if (switches_sync2[i] != switches_stable[i]) begin
-                    // 如果检测到变化，增加计数器
-                    if (debounce_cnt[i] < 20'd500000) begin // 10ms @ 50MHz
-                        debounce_cnt[i] <= debounce_cnt[i] + 1'b1;
-								switch_changed[i] <= 1'b0;
-                    end else begin
-                        // 稳定10ms后更新状态
-                        switches_stable[i] <= switches_sync2[i];
-                        debounce_cnt[i] <= 20'd0;
-                        switch_changed[i] <= 1'b1; // 标记状态变化
-                    end
-                end else begin
-                    // 无变化，重置计数器和变化标志
-                    debounce_cnt[i] <= 20'd0;
-                    switch_changed[i] <= 1'b0;
-                end
-            end
-        end
-    end
-    
+
     // 检测击中和计分
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -161,5 +131,6 @@ module game_controller(
             end
         end
     end
+
 
 endmodule
