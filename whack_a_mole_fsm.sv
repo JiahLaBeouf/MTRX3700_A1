@@ -11,7 +11,8 @@ module whack_a_mole_fsm #(
     output logic up,
     output logic enable,
     output logic [8:0] mole_positions,
-    output logic [15:0] score
+    output logic [15:0] score,
+    output logic spawn_req
 );
 
     // Edge detection for button 
@@ -117,5 +118,6 @@ module whack_a_mole_fsm #(
     assign enable = (current_state == S1 || current_state == S2) ? 1'b1 : 1'b0;
     assign mole_positions = active_moles;
     assign score = game_score;
+    assign spawn_req = (current_state == S1) ? 1'b1 : 1'b0;
 
 endmodule

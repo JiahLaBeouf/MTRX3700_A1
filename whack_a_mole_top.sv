@@ -51,9 +51,16 @@ module top_level (
         .score(score)
     );
 
-    // Assign LEDs - show moles on first 9 LEDs, others off
-    assign LEDR[8:0] = mole_positions;
-    assign LEDR[17:9] = 9'b0;
+    // // Assign LEDs - show moles on first 9 LEDs, others off
+    // assign LEDR[8:0] = mole_positions;
+    // assign LEDR[17:9] = 9'b0;
+
+    //include led controller module
+    led_control u_led_control (
+        .clk(CLOCK_50),
+        .rst_n(timer_reset),
+        .spawn_req()
+    );
 
     // display module
     score_display u_display (
@@ -70,7 +77,7 @@ module top_level (
         .clk(CLOCK_50),
         .time_value(timer_value[7:0]),   // pick bits that fit in 2 digits
         .display0(HEX5),
-        .display1(HEX6)
+        .display1(HEX6) // only one digit, count down time taken to hit mole. 
     );
 
     // Difficulty display
