@@ -15,11 +15,11 @@ module led_controller #(
 
   // Outputs to board / other modules
   output logic [N_LEDS-1:0]     led_mask,           // drive LEDR with this
-  output logic [2:0]            active_count,       //
+  output logic [2:0]            active_count,       // active count
   output logic                  busy                // at max concurrent
 );
 
-  // Simple single-mole baseline (upgrade to arrays for concurrency)
+  // Simple single-mole baseline 
   typedef enum logic [1:0] {IDLE, ACTIVE} state_t;
   state_t state, next;
 
@@ -82,10 +82,10 @@ module led_controller #(
     end
   end
 
-  // Outputs
-  assign led_mask      = mask_q;
-  assign new_mole_pulse= new_pulse_q;
-  assign expired_pulse = exp_pulse_q;
-  assign active_count  = (mask_q == '0) ? 3'd0 : 3'd1;
-  assign busy          = (state == ACTIVE); 
+  // Outputs, connections with the board(components)
+  assign led_mask      = mask_q; // (LEDR)
+  assign new_mole_pulse= new_pulse_q; // alert on spawn
+  assign expired_pulse = exp_pulse_q; // mole expired 
+  assign active_count  = (mask_q == '0) ? 3'd0 : 3'd1; // 0 or 1
+  assign busy          = (state == ACTIVE); // FOR FSM
 endmodule
