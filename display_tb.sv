@@ -4,28 +4,46 @@
 //  - score_display: shows score on HEX3..HEX0 with leading-zero blanking
 //  - diff_display: shows level 1/2/3 on HEX4
 //
-//   1) Generate a 50 MHz-ish clock.
-//   2) Sweep difficulty 1 2 3.
-//   3) Steps the score through some values.
-//   4) Performs two reaction-time measurements (37 ms and 8 ms).
+
+//   1) Generates a 50 MHz-ish clock.
+//   2) Sweeps difficulty 1→2→3.
+//   3) Steps the score through some values (incl. clamp at 9999).
+//   4) Performs two reaction-time measurements (~37 ms and ~8 ms).
+//
+// Produces display.vcd to inspect HEX segments.
+//    In ModelSim/Questa: add all sources, set this TB as top, run.
+//copy the below command line into model sim terminal to run the simulation using the testbench:
+              //cd C:/Users/imran/Desktop/Quartus/seven_seg_display
+              
+              //vlib work
+              //vmap work work
+              
+              //vlog -sv seven_seg_decoder.v
+              //vlog -sv score_display.v
+              //vlog -sv diff_display.v
+              //vlog -sv timer_display.v
+              //vlog -sv display_tb.sv
+              
+              //vsim work.display_tb
+              //add wave -r /*
+              //run -all
+
 //       Common-anode patterns: 0=ON, 1=OFF.
 
 `timescale 1ns/1ps
 
-module wham_display_tb;
+module display_tb;
 
-  // -----------------------------
   // Clocking (50 MHz / 20 ns)
-  // -----------------------------
+
   localparam int CLK_PERIOD_NS = 20;
   reg clk;
   initial clk = 1'b0;
   always #(CLK_PERIOD_NS/2) clk = ~clk;
 
-  // -----------------------------
   // DUT connections
-  // -----------------------------
-  // time_display (reaction timer)
+
+  // timer_display (reaction timer)
   reg  rst_n;
   reg  start_evt;              // pulse when mole appears
   reg  stop_evt;               // pulse when player hits the correct switch
@@ -39,12 +57,10 @@ module wham_display_tb;
   reg  [2:0]  diff;            // 001=easy, 010=med, 100=hard
   wire [6:0]  HEX4;
 
-  // -----------------------------
   // Instantiate the DUTs
-  // -----------------------------
 
   // Speed up simulation: CLKS_PER_MS=5 means "1ms" every 5 clock cycles.
-  time_display #(.CLKS_PER_MS(5)) u_time (
+  timer_display #(.CLKS_PER_MS(5)) u_time (
     .clk       (clk),
     .rst_n     (rst_n),
     .start_evt (start_evt),
@@ -67,9 +83,8 @@ module wham_display_tb;
     .hex  (HEX4)
   );
 
-  // -----------------------------
+
   // Helpers
-  // -----------------------------
 
   // Because CLKS_PER_MS=5 in this TB, "wait_ms(x)" = x * 5 cycles.
   task automatic wait_ms(input int ms);
@@ -87,12 +102,11 @@ module wham_display_tb;
     end
   endtask
 
-  // -----------------------------
+
   // Test sequence
-  // -----------------------------
   initial begin
-    $dumpfile("wham_display.vcd");
-    $dumpvars(0, wham_display_tb);
+    $dumpfile("display.vcd");
+    $dumpvars(0, display_tb);
 
     // Defaults
     rst_n     = 1'b0;
@@ -105,7 +119,7 @@ module wham_display_tb;
     repeat (5) @(posedge clk);
     rst_n = 1'b1;
 
-    // ---- Difficulty sweep: 1 → 2 → 3 ----
+    // ---- Difficulty sweep: 1 2 3 ----
     repeat (6) @(posedge clk);
     diff = 3'b001;  // "1"
     repeat (6) @(posedge clk);
@@ -113,7 +127,7 @@ module wham_display_tb;
     repeat (6) @(posedge clk);
     diff = 3'b100;  // "3"
 
-    // ---- Score steps (also tests leading-zero blanking + clamp) ----
+    // Score steps (also tests leading-zero blanking + clamp) 
     score = 16'd0;     repeat (8) @(posedge clk);
     score = 16'd7;     repeat (8) @(posedge clk);
     score = 16'd12;    repeat (8) @(posedge clk);
@@ -121,13 +135,13 @@ module wham_display_tb;
     score = 16'd9999;  repeat (8) @(posedge clk);
     score = 16'd10050; repeat (8) @(posedge clk); // should clamp to 9999 visually
 
-    // ---- Reaction time #1: ~37 ms ----
+    // Reaction time #1: 37 ms 
     pulse("start_evt", start_evt);
     wait_ms(37);
     pulse("stop_evt",  stop_evt);
     repeat (12) @(posedge clk);
 
-    // ---- Reaction time #2: ~8 ms ----
+    //Reaction time #2: 8 ms 
     pulse("start_evt", start_evt);
     wait_ms(8);
     pulse("stop_evt",  stop_evt);
