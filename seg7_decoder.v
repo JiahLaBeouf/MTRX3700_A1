@@ -1,10 +1,10 @@
 module seg7_decoder(
-    input [3:0] bin,    // 二进制输入 (0-9)
-    output reg [6:0] seg // 7段数码管输出 (共阳极)
+    input [3:0] bin,    // binary input (0-9)
+    output reg [6:0] seg // 7seg output
 );
 
-    // 共阳极7段数码管，0表示亮，1表示灭
-    // 段码定义: seg = {g,f,e,d,c,b,a}
+    // 0 means on，1means off
+    // seg = {g,f,e,d,c,b,a}
     always @(*) begin
         case (bin)
             4'd0: seg = 7'b1000000; // 0
@@ -17,8 +17,9 @@ module seg7_decoder(
             4'd7: seg = 7'b1111000; // 7
             4'd8: seg = 7'b0000000; // 8
             4'd9: seg = 7'b0010000; // 9
-            default: seg = 7'b1111111; // 全灭
+            default: seg = 7'b1111111; // all off
         endcase
     end
+
 
 endmodule
