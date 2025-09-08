@@ -1,33 +1,33 @@
 module Game_top(
-    input clk,                  // 50MHz系统时钟
-    input rst_n,                // 复位按键，低电平有效
-    input speed1,               // 速度1按键（2秒/次），低电平有效
-    input speed2,               // 速度2按键（1.5秒/次），低电平有效
-    input speed3,               // 速度3按键（1秒/次），低电平有效
-    input [17:0] switches,      // 18个拨码开关
-    output [17:0] leds,         // 18个LED
-    output [6:0] HEX5, // 倒计时十位数码管
-    output [6:0] HEX4, // 倒计时个位数码管
-    output [6:0] HEX3, // 分数千位数码管
-    output [6:0] HEX2, // 分数百位数码管
-    output [6:0] HEX1, // 分数十位数码管
-    output [6:0] HEX0, // 分数个位数码管
-    output [6:0] HEX6      // 速度档位数码管
+    input clk,                  // 50 MHz system clock
+    input rst_n,                // Reset button, active-low
+    input speed1,               // Speed level 1 button (one step per 2 s), active-low
+    input speed2,               // Speed level 2 button (one step per 1.5 s), active-low
+    input speed3,               // Speed level 3 button (one step per 1 s), active-low
+    input [17:0] switches,      // 18 DIP switches
+    output [17:0] leds,         // 18 LEDs
+    output [6:0] HEX5,          // Countdown tens (7-seg)
+    output [6:0] HEX4,          // Countdown ones (7-seg)
+    output [6:0] HEX3,          // Score thousands (7-seg)
+    output [6:0] HEX2,          // Score hundreds (7-seg)
+    output [6:0] HEX1,          // Score tens (7-seg)
+    output [6:0] HEX0,          // Score ones (7-seg)
+    output [6:0] HEX6           // Speed level (7-seg)
 );
 
-    // 内部信号定义
-    wire clk_1hz;               // 1Hz时钟
-    wire clk_067hz;             // 0.67Hz时钟 (1.5秒周期)
-    wire clk_05hz;              // 0.5Hz时钟 (2秒周期)-3214
-    wire [4:0] random_pos;      // 随机位置 (0-17)
-    wire [17:0] target_led;     // 目标LED
+    // Internal signals
+    wire clk_1hz;               // 1 Hz clock
+    wire clk_067hz;             // 0.67 Hz clock (1.5 s period)
+    wire clk_05hz;              // 0.5 Hz clock (2 s period)
+    wire [4:0] random_pos;      // Random position (0–17)
+    wire [17:0] target_led;     // Target LED pattern
     
-    wire [5:0] timer;           // 60秒倒计时
-    wire [13:0] score;          // 游戏分数 (最大9999)
-    wire [1:0] speed_level;     // 速度等级 (0,1,2)
-    wire game_over;             // 游戏结束标志
+    wire [5:0]  timer;          // 60-second countdown
+    wire [13:0] score;          // Game score (max 9999)
+    wire [1:0]  speed_level;    // Speed level (0,1,2)
+    wire        game_over;      // Game-over flag
     
-    // 时钟分频模块
+    // Clock divider
     clock_divider clock_div_inst(
         .clk(clk),
         .rst_n(rst_n),
@@ -36,14 +36,14 @@ module Game_top(
         .clk_05hz(clk_05hz)
     );
     
-    // 随机数生成模块
+    // Pseudo-random generator
     random_generator rand_gen_inst(
         .clk(clk),
         .rst_n(rst_n),
         .random_pos(random_pos)
     );
     
-    // 游戏控制模块
+    // Game controller
     game_controller game_ctrl_inst(
         .clk(clk),
         .rst_n(rst_n),
@@ -62,10 +62,10 @@ module Game_top(
         .target_led(target_led)
     );
     
-    // LED输出
+    // LED outputs
     assign leds = target_led;
     
-    // 数码管显示模块 - 倒计时
+    // Seven-seg display — countdown
     seg7_decoder seg_time_tens_inst(
         .bin(timer / 10),
         .seg(HEX5)
@@ -76,7 +76,7 @@ module Game_top(
         .seg(HEX4)
     );
     
-    // 数码管显示模块 - 分数
+    // Seven-seg display — score
     seg7_decoder seg_score_thou_inst(
         .bin(score / 1000),
         .seg(HEX3)
@@ -97,9 +97,9 @@ module Game_top(
         .seg(HEX0)
     );
     
-    // 数码管显示模块 - 速度档位
+    // Seven-seg display — speed level (show 1, 2, or 3)
     seg7_decoder seg_speed_inst(
-        .bin(speed_level + 1),  // 显示1,2,3
+        .bin(speed_level + 1),
         .seg(HEX6)
     );
 
